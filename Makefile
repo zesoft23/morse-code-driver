@@ -1,5 +1,5 @@
-SRC := hello.c
-TARGET = hello
+SRC := main.c
+TARGET = morse
 OBJS := $(SRC:.c=.o)
 
 all: $(TARGET)
