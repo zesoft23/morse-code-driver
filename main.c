@@ -1,9 +1,19 @@
 #include<stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdlib.h>
+#include <unistd.h> // For usleep
+
+char *TESTSTRING = "PARIS";
+int PRINT_CHARS = 1;
 
 
-int morseToDitDah(char morse, char *ditDah) {
+int morseToDitDah(char morse, char *ditDah, int convertToUpper) {
+
+    if (convertToUpper) {
+        morse = toupper(morse);
+    }
+
     // Giant switch statement
     switch (morse) {
         case 'A': strcpy(ditDah, ".-"); break;
@@ -66,15 +76,45 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    char *endptr;
+    long int wpm;
+
+    // Convert the argument to a long integer
+    wpm = strtol(argv[1], &endptr, 10);
+
+    float dot_period = ( 1200000 / wpm ); // In microseconds, also the rest period
+    float dash_period = dot_period * 7;
+    float inter_char = dot_period * 3;
+    float inter_word = dot_period * 7;
+
     char ditDah[6];
 
-    int rc = morseToDitDah(toupper(argv[1][0]), ditDah);
-    if (rc) {
-        printf("Failed to parse character %c to Morse Code, is it a standard character?\n", argv[1][0]);
-        return rc;
-    }
 
-    printf("Character %s is %s in Morse Code\n", argv[1], ditDah);
+    while(1) {
+        for (int i = 0; i < strlen(TESTSTRING); i++) {
+            int rc = morseToDitDah(toupper(TESTSTRING[i]), ditDah, 1);
+            if (rc) {
+                printf("Failed to parse character %c to Morse Code, is it a standard character?\n", argv[1][0]);
+                return rc;
+            }
+
+            size_t j = 0;
+            while (ditDah[j] != '\0') {
+                if (ditDah[j] == '-') {
+                    usleep(dash_period);
+                } else {
+                    usleep(dot_period);
+                }
+                printf("%c\n", ditDah[j]);
+                usleep(inter_char);
+                j++;
+            }
+
+            printf("\n");
+        }
+
+        usleep(inter_word);
+    }
 
     return 0;
 }
