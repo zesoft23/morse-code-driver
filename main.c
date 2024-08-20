@@ -3,9 +3,13 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <unistd.h> // For usleep
+#include <getopt.h>
 
-char *TESTSTRING = "PARIS";
+
+#define LED3_PATH "/sys/class/leds/beaglebone:green:usr3"
+
 int PRINT_CHARS = 1;
+int DEBUG_PRINT = 1;
 
 
 int morseToDitDah(char morse, char *ditDah, int convertToUpper) {
@@ -62,25 +66,62 @@ int morseToDitDah(char morse, char *ditDah, int convertToUpper) {
     }
 }
 
-
-
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     // Converts any alphanumberic character to Uppercase
     // Only supports US Latin Alphabet and numbers
-    if (argc < 2) {
-        printf("Too Few Arguments\n");
-        return 1;
-    } else if (argc > 3)
-    {
-        printf("Too Many Arguments\n");
-        return 1;
+    char string_to_morse[100];
+    int wpm;
+    int c;
+    char *endptr;
+
+    while ((c = getopt (argc, argv, "abc:")) != -1) {
+
+        static struct option long_options[] =
+            {
+                /* These options don’t set a flag.
+                    We distinguish them by their indices. */
+                {"wpm", required_argument, 0, 'w'},
+                {"string", required_argument, 0, 's'},
+                {0, 0, 0, 0}};
+        /* getopt_long stores the option index here. */
+        int option_index = 0;
+
+        c = getopt_long(argc, argv, "w:s:",
+                        long_options, &option_index);
+
+        switch (c)
+        {
+
+        case 'w':
+            // Convert the argument to an integer
+            wpm = strtol(optarg, &endptr, 10);
+            printf("option -w with value `%s'\n", optarg);
+            break;
+
+        case 's':
+            strcpy(string_to_morse, optarg);
+            printf("option -s with value `%s'\n", optarg);
+            break;
+
+        case '?':
+            /* getopt_long already printed an error message. */
+            break;
+
+        default:
+            abort();
+        }
+
+        /* Print any remaining command line arguments (not options). */
+        if (optind < argc)
+        {
+            printf ("non-option ARGV-elements: ");
+            while (optind < argc)
+                printf ("%s ", argv[optind++]);
+            putchar ('\n');
+        }
     }
 
-    char *endptr;
-    long int wpm;
-
-    // Convert the argument to a long integer
-    wpm = strtol(argv[1], &endptr, 10);
 
     float dot_period = ( 1200000 / wpm ); // In microseconds, also the rest period
     float dash_period = dot_period * 7;
@@ -90,31 +131,33 @@ int main(int argc, char *argv[]) {
     char ditDah[6];
 
 
-    while(1) {
-        for (int i = 0; i < strlen(TESTSTRING); i++) {
-            int rc = morseToDitDah(toupper(TESTSTRING[i]), ditDah, 1);
-            if (rc) {
-                printf("Failed to parse character %c to Morse Code, is it a standard character?\n", argv[1][0]);
-                return rc;
-            }
-
-            size_t j = 0;
-            while (ditDah[j] != '\0') {
-                if (ditDah[j] == '-') {
-                    usleep(dash_period);
-                } else {
-                    usleep(dot_period);
-                }
-                printf("%c\n", ditDah[j]);
-                usleep(inter_char);
-                j++;
-            }
-
-            printf("\n");
+    for (int i = 0; i < strlen(string_to_morse); i++) {
+        int rc = morseToDitDah(toupper(string_to_morse[i]), ditDah, 1);
+        if (rc) {
+            printf("Failed to parse character %c to Morse Code, is it a standard character?\n", argv[1][0]);
+            return rc;
         }
 
-        usleep(inter_word);
+        size_t j = 0;
+        while (ditDah[j] != '\0') {
+            if (ditDah[j] == '-') {
+                usleep(dash_period);
+            } else if (ditDah[j] == '.')
+            {
+                usleep(dot_period);
+            }
+            else {
+                usleep(inter_word);
+            }
+            printf("%c\n", ditDah[j]);
+            usleep(inter_char);
+            j++;
+        }
+
+        printf("\n");
     }
+
+    usleep(inter_word);
 
     return 0;
 }
