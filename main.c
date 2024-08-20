@@ -75,51 +75,50 @@ int main(int argc, char *argv[])
     int c;
     char *endptr;
 
-    while ((c = getopt (argc, argv, "abc:")) != -1) {
 
-        static struct option long_options[] =
-            {
-                /* These options don’t set a flag.
-                    We distinguish them by their indices. */
-                {"wpm", required_argument, 0, 'w'},
-                {"string", required_argument, 0, 's'},
-                {0, 0, 0, 0}};
-        /* getopt_long stores the option index here. */
-        int option_index = 0;
+    static struct option long_options[] =
+        {
+            /* These options don’t set a flag.
+                We distinguish them by their indices. */
+            {"wpm", required_argument, 0, 'w'},
+            {"string", required_argument, 0, 's'},
+            {0, 0, 0, 0}};
+    /* getopt_long stores the option index here. */
+    int option_index = 0;
 
-        c = getopt_long(argc, argv, "w:s:",
-                        long_options, &option_index);
+
+    while ((c = getopt_long(argc, argv, "w:s:", long_options, &option_index)) != -1) {
 
         switch (c)
         {
+            case 'w':
+                // Convert the argument to an integer
+                wpm = strtol(optarg, &endptr, 10);
+                printf("option -w with value `%s'\n", optarg);
+                break;
 
-        case 'w':
-            // Convert the argument to an integer
-            wpm = strtol(optarg, &endptr, 10);
-            printf("option -w with value `%s'\n", optarg);
-            break;
+            case 's':
+                strcpy(string_to_morse, optarg);
+                printf("option -s with value `%s'\n", optarg);
+                break;
 
-        case 's':
-            strcpy(string_to_morse, optarg);
-            printf("option -s with value `%s'\n", optarg);
-            break;
+            case '?':
+                /* getopt_long already printed an error message. */
+                break;
 
-        case '?':
-            /* getopt_long already printed an error message. */
-            break;
-
-        default:
-            abort();
+            default:
+                abort();
         }
+    }
 
-        /* Print any remaining command line arguments (not options). */
-        if (optind < argc)
-        {
-            printf ("non-option ARGV-elements: ");
-            while (optind < argc)
-                printf ("%s ", argv[optind++]);
-            putchar ('\n');
-        }
+
+    /* Print any remaining command line arguments (not options). */
+    if (optind < argc)
+    {
+        printf ("non-option ARGV-elements: ");
+        while (optind < argc)
+            printf ("%s ", argv[optind++]);
+        putchar ('\n');
     }
 
 

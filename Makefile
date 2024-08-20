@@ -1,5 +1,6 @@
 SRC := main.c
 TARGET = morse
+CFLAGS := -Wall -Werror
 OBJS := $(SRC:.c=.o)
 
 all: $(TARGET)
