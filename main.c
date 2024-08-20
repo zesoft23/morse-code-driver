@@ -71,8 +71,8 @@ void writeLEDforDuration(float wait_us) {
     if (LEDS_ENABLED) {
         FILE *fp = fopen(LED3_PATH, "w+");
         fprintf(fp, "%s", "1"); // write high
-        usleep(wait_us);
         fclose(fp); //close the file using the file pointer
+        usleep(wait_us);
         fp = fopen(LED3_PATH, "w+");
         fprintf(fp, "%s", "0"); // write low
         fclose(fp); //close the file using the file pointer
