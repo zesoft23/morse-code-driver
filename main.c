@@ -6,11 +6,9 @@
 #include <getopt.h>
 
 
-#define LED3_PATH "/sys/class/leds/beaglebone:green:usr3"
-
-int PRINT_CHARS = 1;
-int DEBUG_PRINT = 1;
-
+#define LED3_PATH "/sys/class/leds/beaglebone:green:usr3/brightness"
+#define DEBUGPRINT_CHARS 1
+#define LEDS_ENABLED 1
 
 int morseToDitDah(char morse, char *ditDah, int convertToUpper) {
 
@@ -63,6 +61,21 @@ int morseToDitDah(char morse, char *ditDah, int convertToUpper) {
         return 1;
     } else {
         return 0;
+    }
+}
+
+void writeLEDforDuration(float wait_us) {
+    /*
+    Writes the LED high (1), waits the duration wait_us, then writes the file low (0)
+    */
+    if (LEDS_ENABLED) {
+        FILE *fp = fopen(LED3_PATH, "w+");
+        fprintf(fp, "%s", "1"); // write high
+        usleep(wait_us);
+        fprintf(fp, "%s", "0"); // write high
+        fclose(fp); //close the file using the file pointer
+    } else {
+        usleep(wait_us);
     }
 }
 
@@ -137,23 +150,27 @@ int main(int argc, char *argv[])
             return rc;
         }
 
+
+        if (DEBUGPRINT_CHARS)
+            printf("%c\n", string_to_morse[i]);
         size_t j = 0;
         while (ditDah[j] != '\0') {
             if (ditDah[j] == '-') {
-                usleep(dash_period);
-            } else if (ditDah[j] == '.')
-            {
-                usleep(dot_period);
-            }
-            else {
+                writeLEDforDuration(dash_period);
+                if (DEBUGPRINT_CHARS)
+                    printf("%c\n", ditDah[j]);
+            } else if (ditDah[j] == '.') {
+                writeLEDforDuration(dot_period);
+                if (DEBUGPRINT_CHARS)
+                    printf("%c\n", ditDah[j]);
+            } else {
+                if (DEBUGPRINT_CHARS)
+                    printf("\n");
                 usleep(inter_word);
             }
-            printf("%c\n", ditDah[j]);
             usleep(inter_char);
             j++;
         }
-
-        printf("\n");
     }
 
     usleep(inter_word);
