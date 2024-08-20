@@ -146,37 +146,39 @@ int main(int argc, char *argv[])
 
 
     for (int i = 0; i < strlen(string_to_morse); i++) {
-        int rc = morseToDitDah(toupper(string_to_morse[i]), ditDah, 1);
-        if (rc) {
-            printf("Failed to parse character %c to Morse Code, is it a standard character?\n", argv[1][0]);
-            return rc;
-        }
-
-
-        if (DEBUGPRINT_CHARS)
-            printf("%c\n", string_to_morse[i]);
-        size_t j = 0;
-        while (ditDah[j] != '\0') {
-            if (ditDah[j] == '-') {
-                writeLEDforDuration(dash_period);
-                if (DEBUGPRINT_CHARS)
-                    printf("%c\n", ditDah[j]);
-            } else if (ditDah[j] == '.') {
-                writeLEDforDuration(dot_period);
-                if (DEBUGPRINT_CHARS)
-                    printf("%c\n", ditDah[j]);
-            } else {
-                if (DEBUGPRINT_CHARS)
-                    printf("\n");
-                usleep(inter_word);
+        if (string_to_morse[i] == ' ') {
+            usleep(inter_word);
+            if (DEBUGPRINT_CHARS)
+                printf("sleeping between words\n");
+        } else {
+            int rc = morseToDitDah(toupper(string_to_morse[i]), ditDah, 1);
+            if (rc) {
+                printf("Failed to parse character %c to Morse Code, is it a standard character?\n", argv[1][0]);
+                return rc;
             }
-            printf("sleeping between char\n");
-            usleep(inter_char);
-            j++;
+
+            if (DEBUGPRINT_CHARS)
+                printf("%c\n", string_to_morse[i]);
+            size_t j = 0;
+            while (ditDah[j] != '\0') {
+                if (ditDah[j] == '-') {
+                    writeLEDforDuration(dash_period);
+                    if (DEBUGPRINT_CHARS)
+                        printf("%c\n", ditDah[j]);
+                } else if (ditDah[j] == '.') {
+                    writeLEDforDuration(dot_period);
+                    if (DEBUGPRINT_CHARS)
+                        printf("%c\n", ditDah[j]);
+                } else {
+                    if (DEBUGPRINT_CHARS)
+                        printf("\n");
+                    usleep(inter_word);
+                }
+                printf("sleeping between char\n");
+                usleep(inter_char);
+                j++;
+            }
         }
     }
-
-    usleep(inter_word);
-
     return 0;
 }
