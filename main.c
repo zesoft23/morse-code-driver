@@ -72,7 +72,9 @@ void writeLEDforDuration(float wait_us) {
         FILE *fp = fopen(LED3_PATH, "w+");
         fprintf(fp, "%s", "1"); // write high
         usleep(wait_us);
-        fprintf(fp, "%s", "0"); // write high
+        fclose(fp); //close the file using the file pointer
+        fp = fopen(LED3_PATH, "w+");
+        fprintf(fp, "%s", "0"); // write low
         fclose(fp); //close the file using the file pointer
     } else {
         usleep(wait_us);
@@ -168,6 +170,7 @@ int main(int argc, char *argv[])
                     printf("\n");
                 usleep(inter_word);
             }
+            printf("sleeping between char\n");
             usleep(inter_char);
             j++;
         }
